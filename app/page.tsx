@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +28,11 @@ export default function Home() {
   const [showAnswer, setShowAnswer] = useState(false);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const generateQuestions = async () => {
     setIsGenerating(true);
@@ -85,6 +90,23 @@ export default function Home() {
     return `${correct}/${Object.keys(answers).length}`;
   };
 
+  const handleQuestionCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setQuestionCount(Math.min(30, Math.max(1, parseInt(value) || 1)));
+  };
+
+  const incrementQuestionCount = () => {
+    setQuestionCount((prev) => Math.min(30, prev + 1));
+  };
+
+  const decrementQuestionCount = () => {
+    setQuestionCount((prev) => Math.max(1, prev - 1));
+  };
+
+  if (!isClient) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
       {questions.length === 0 ? (
@@ -123,14 +145,51 @@ export default function Home() {
 
               <div className="space-y-2">
                 <Label htmlFor="question-count">Number of Questions (1-30)</Label>
-                <Input
-                  id="question-count"
-                  type="number"
-                  min="1"
-                  max="30"
-                  value={questionCount}
-                  onChange={(e) => setQuestionCount(Math.min(30, Math.max(1, parseInt(e.target.value) || 1)))}
-                />
+                <div className="py-2 px-3 bg-white border border-gray-200 rounded-lg dark:bg-neutral-900 dark:border-neutral-700" data-hs-input-number="">
+                  <div className="w-full flex justify-between items-center gap-x-5">
+                    <div className="grow">
+                      <span className="block text-xs text-gray-500 dark:text-neutral-400">
+                        Select quantity
+                      </span>
+                      <input
+                        className="w-full p-0 bg-transparent border-0 text-gray-800 focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none dark:text-white"
+                        style={{ MozAppearance: "textfield" }}
+                        type="number"
+                        aria-roledescription="Number field"
+                        value={questionCount}
+                        onChange={handleQuestionCountChange}
+                        data-hs-input-number-input=""
+                      />
+                    </div>
+                    <div className="flex justify-end items-center gap-x-1.5">
+                      <button
+                        type="button"
+                        className="size-6 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-full border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
+                        tabIndex={-1}
+                        aria-label="Decrease"
+                        onClick={decrementQuestionCount}
+                        data-hs-input-number-decrement=""
+                      >
+                        <svg className="shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14"></path>
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        className="size-6 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-full border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
+                        tabIndex={-1}
+                        aria-label="Increase"
+                        onClick={incrementQuestionCount}
+                        data-hs-input-number-increment=""
+                      >
+                        <svg className="shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14"></path>
+                          <path d="M12 5v14"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
