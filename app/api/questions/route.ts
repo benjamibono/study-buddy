@@ -78,6 +78,9 @@ export async function POST(request: Request) {
       store: true,
     });
 
+    if (!completion) {
+      throw new Error("No completion returned from OpenAI");
+    }
     const responseContent = completion.choices[0]?.message?.content || "{}";
     console.log("OpenAI response:", responseContent);
 
