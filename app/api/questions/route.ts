@@ -31,13 +31,14 @@ async function createCompletionWithRetry(params: any, retries = 3) {
   }
 }
 
-export const config = {
-  api: {
-    bodyParser: true,
-  },
-};
-
 export async function POST(request: Request) {
+  if (request.method !== "POST") {
+    return NextResponse.json(
+      { error: "Method not allowed" },
+      { status: 405 }
+    );
+  }
+
   try {
     const { text, difficulty, count } = await request.json();
 
