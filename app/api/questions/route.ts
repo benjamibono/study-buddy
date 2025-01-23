@@ -2,7 +2,8 @@ import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import dotenv from "dotenv";
 
-dotenv.config();
+// Load environment variables from a local .env file
+dotenv.config({ path: '/Users/benjamibono/Documents/CODING/WebDev/study-buddy/.env.local' });
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
