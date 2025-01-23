@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import dotenv from "dotenv";
 
+// Load environment variables from a local .env file
 dotenv.config();
 
 const openai = new OpenAI({
@@ -32,13 +33,6 @@ async function createCompletionWithRetry(params: any, retries = 3) {
 }
 
 export async function POST(request: Request) {
-  if (request.method !== "POST") {
-    return NextResponse.json(
-      { error: "Method not allowed" },
-      { status: 405 }
-    );
-  }
-
   try {
     const { text, difficulty, count } = await request.json();
 
@@ -106,3 +100,9 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export const config = {
+  api: {
+    bodyParser: true,
+  },
+};
