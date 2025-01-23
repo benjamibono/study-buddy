@@ -22,7 +22,7 @@ export default function Home() {
   const { toast } = useToast();
   const [studyText, setStudyText] = useState("");
   const [difficulty, setDifficulty] = useState("medium");
-  const [questionCount, setQuestionCount] = useState(5);
+  const [questionCount, setQuestionCount] = useState(1);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -86,27 +86,27 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-4 md:p-6">
       {questions.length === 0 ? (
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="flex items-center space-x-2">
             <BookOpen className="w-6 h-6" />
-            <h1 className="text-2xl font-bold">Interactive Study Tool</h1>
+            <h1 className="text-xl md:text-2xl font-bold">Study Buddy</h1>
           </div>
           
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="study-text">Study Material</Label>
+              <Label htmlFor="study-text">Study Material or Subject</Label>
               <Textarea
                 id="study-text"
-                placeholder="Paste your study material here..."
-                className="min-h-[200px]"
+                placeholder="Paste your study material or enter a subject here..."
+                className="min-h-[150px] md:min-h-[200px]"
                 value={studyText}
                 onChange={(e) => setStudyText(e.target.value)}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Difficulty</Label>
                 <Select value={difficulty} onValueChange={setDifficulty}>
@@ -122,14 +122,14 @@ export default function Home() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="question-count">Number of Questions (1-20)</Label>
+                <Label htmlFor="question-count">Number of Questions (1-30)</Label>
                 <Input
                   id="question-count"
                   type="number"
                   min="1"
-                  max="20"
+                  max="30"
                   value={questionCount}
-                  onChange={(e) => setQuestionCount(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))}
+                  onChange={(e) => setQuestionCount(Math.min(30, Math.max(1, parseInt(e.target.value) || 1)))}
                 />
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function Home() {
       ) : (
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">
+            <h2 className="text-lg md:text-xl font-semibold">
               Question {currentQuestion + 1} of {questions.length}
             </h2>
             <div className="flex items-center space-x-2">
@@ -176,14 +176,14 @@ export default function Home() {
             className="w-full"
           />
 
-          <Card className="p-6">
+          <Card className="p-4 md:p-6">
             <div
-              className="min-h-[200px] cursor-pointer"
+              className="min-h-[150px] md:min-h-[200px] cursor-pointer"
               onClick={() => setShowAnswer(!showAnswer)}
             >
               {!showAnswer ? (
                 <div className="space-y-4">
-                  <p className="text-lg font-medium">{questions[currentQuestion].text}</p>
+                  <p className="text-base md:text-lg font-medium">{questions[currentQuestion].text}</p>
                   <div className="space-y-2">
                     {questions[currentQuestion].options.map((option, index) => (
                       <Button
@@ -205,7 +205,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-full">
-                  <p className="text-lg font-medium">
+                  <p className="text-base md:text-lg font-medium">
                     Correct Answer: {String.fromCharCode(65 + questions[currentQuestion].correctAnswer)}
                   </p>
                 </div>
