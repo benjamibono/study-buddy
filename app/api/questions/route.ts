@@ -2,7 +2,6 @@ import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import dotenv from "dotenv";
 
-// Load environment variables from a local .env file
 dotenv.config();
 
 const openai = new OpenAI({
@@ -46,36 +45,6 @@ export async function POST(request: Request) {
         },
       ],
       temperature: 0.7,
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "questions_schema",
-          schema: {
-            type: "object",
-            properties: {
-              questions: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    text: { type: "string" },
-                    options: {
-                      type: "array",
-                      items: { type: "string" },
-                    },
-                    correctAnswer: { type: "integer" },
-                  },
-                  required: ["text", "options", "correctAnswer"],
-                  additionalProperties: false,
-                },
-              },
-            },
-            required: ["questions"],
-            additionalProperties: false,
-          },
-        },
-      },
-      store: true,
     });
 
     if (!completion) {
@@ -84,13 +53,7 @@ export async function POST(request: Request) {
     const responseContent = completion.choices[0]?.message?.content || "{}";
     console.log("OpenAI response:", responseContent);
 
-    let jsonResponse;
-    try {
-      jsonResponse = JSON.parse(responseContent);
-    } catch (error) {
-      throw new Error("Respuesta no es un JSON válido");
-    }
-
+    const jsonResponse = JSON.parse(responseContent);
     return NextResponse.json(jsonResponse);
   } catch (error) {
     console.error("Error procesando la respuesta de OpenAI:", error);
@@ -100,9 +63,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
-export const config = {
-  api: {
-    bodyParser: true,
-  },
-};
