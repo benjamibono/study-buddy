@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     const { text, difficulty, count } = await request.json();
 
     const completion = await createCompletionWithRetry({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
         {
