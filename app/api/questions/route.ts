@@ -21,7 +21,7 @@ Format your response as a JSON array of objects with the following structure:
   "correctAnswer": 0 // index of correct option (0-3)
 }`;
 
-async function createCompletionWithRetry(params: any, retries = 3) {
+async function createCompletionWithRetry(params: any, retries = 10) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       return await openai.chat.completions.create(params);
