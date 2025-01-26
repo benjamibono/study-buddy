@@ -34,27 +34,42 @@ export default function Home() {
     setIsClient(true);
   }, []);
 
+  const chunkText = (text: string, size: number) => {
+    const chunks = [];
+    for (let i = 0; i < text.length; i += size) {
+      chunks.push(text.slice(i, i + size));
+    }
+    return chunks;
+  };
+
   const generateQuestions = async () => {
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/questions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: studyText,
-          difficulty,
-          count: questionCount,
-        }),
-      });
+      const textChunks = chunkText(studyText, 5000); // Adjust chunk size as needed
+      const questions = [];
 
-      if (!response.ok) {
-        throw new Error('Failed to generate questions');
+      for (const chunk of textChunks) {
+        const response = await fetch('/api/questions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: chunk,
+            difficulty,
+            count: questionCount,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate questions');
+        }
+
+        const data = await response.json();
+        questions.push(...data.questions);
       }
 
-      const data = await response.json();
-      const formattedQuestions = data.questions.map((q: any, index: number) => ({
+      const formattedQuestions = questions.map((q: any, index: number) => ({
         ...q,
         id: index,
       }));
