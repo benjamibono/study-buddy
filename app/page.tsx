@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { BookOpen, ChevronLeft, ChevronRight, RotateCw, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import Image from 'next/image'; // Import the Image component
 
 interface Question {
   id: number;
@@ -134,10 +135,10 @@ export default function Home() {
     <div className="min-h-screen bg-background p-4 md:p-6">
       {questions.length === 0 ? (
         <div className="max-w-2xl mx-auto space-y-6">
-          <div className="flex items-center space-x-2">
-            <BookOpen className="w-6 h-6" />
+            <div className="flex items-center space-x-2">
+            <Image src="/study.webp" alt="Custom Logo" className="w-12 h-12 rounded-full" width={48} height={48} />
             <h1 className="text-xl md:text-2xl font-bold">Study Buddy</h1>
-          </div>
+            </div>
           
           <div className="space-y-4">
             <div className="space-y-2">
