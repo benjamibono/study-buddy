@@ -29,10 +29,23 @@ export default function Home() {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (questions.length > 0) {
+      timer = setInterval(() => {
+        setElapsedTime((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setElapsedTime(0);
+    }
+    return () => clearInterval(timer);
+  }, [questions]);
 
   const generateQuestions = async () => {
     setIsGenerating(true);
@@ -87,7 +100,17 @@ export default function Home() {
     const correct = Object.entries(answers).filter(
       ([questionId, answer]) => questions[parseInt(questionId)].correctAnswer === answer
     ).length;
-    return `${correct}/${Object.keys(answers).length}`;
+    const total = Object.keys(answers).length;
+    if (total === questions.length) {
+      return `${((correct / total) * 10).toFixed()} / 10`;
+    }
+    return `${correct}/${total}`;
+  };
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
   };
 
   const handleQuestionCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -216,6 +239,7 @@ export default function Home() {
               Question {currentQuestion + 1} of {questions.length}
             </h2>
             <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium">Time: {formatTime(elapsedTime)}</span>
               <span className="text-sm font-medium">Score: {getScore()}</span>
               <Button
                 variant="outline"
@@ -248,7 +272,7 @@ export default function Home() {
                       <Button
                         key={index}
                         variant={answers[currentQuestion] === index ? 
-                          (index === questions[currentQuestion].correctAnswer ? "default" : "destructive") 
+                          (index === questions[currentQuestion].correctAnswer ? "correct" : "destructive") 
                           : "outline"}
                         className="w-full justify-start text-left"
                         onClick={(e) => {
