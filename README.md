@@ -2,7 +2,6 @@
 
 A modern and interactive study platform built with Next.js and TypeScript, designed to enhance the learning experience through collaborative features and AI-powered assistance.
 
-🚧 Project Status: Work in Progress 🚧
 
 ## ✨ Features
 
