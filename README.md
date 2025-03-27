@@ -2,6 +2,26 @@
 
 A modern and interactive study platform built with Next.js and TypeScript, designed to enhance the learning experience through collaborative features and AI-powered assistance.
 
+<div align="center">
+  <a href="https://nextjs.org" target="_blank">
+    <img src="https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+  </a>
+  <a href="https://tailwindcss.com" target="_blank">
+    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  </a>
+  <a href="https://vercel.com" target="_blank">
+    <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
+  </a>
+  <a href="https://openai.com" target="_blank">
+    <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI" />
+  </a>
+</div>
+
+<div align="center">
+  <div style="display: flex; justify-content: center; gap: 20px; margin: 40px 0;">
+    <img src="/public/preview.webp" alt="Study Buddy Desktop Version" width="600" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+  </div>
+</div>
 
 ## ✨ Features
 
