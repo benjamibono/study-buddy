@@ -17,9 +17,12 @@ A modern and interactive study platform built with Next.js and TypeScript, desig
   </a>
 </div>
 
+<br />
+<br />
+
 <div align="center">
   <div style="display: flex; justify-content: center; gap: 20px; margin: 40px 0;">
-    <img src="/public/preview.webp" alt="Study Buddy Desktop Version" width="600" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+    <img src="/public/preview.webp" alt="Study Buddy Desktop Version" width="100%" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
   </div>
 </div>
 
