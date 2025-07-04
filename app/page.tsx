@@ -4,19 +4,33 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, ChevronLeft, ChevronRight, RotateCw, Loader2 } from "lucide-react";
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  RotateCw,
+  Loader2,
+} from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import Image from 'next/image'; // Import the Image component
+import Image from "next/image";
+import ThemeToggle from "@/components/theme-toggle";
 
 interface Question {
   id: number;
   text: string;
   options: string[];
   correctAnswer: number;
+  explanation: string;
 }
 
 export default function Home() {
@@ -31,6 +45,8 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [timeLimit, setTimeLimit] = useState<number | null>(null); // seconds
+  const [showResult, setShowResult] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -38,23 +54,32 @@ export default function Home() {
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (questions.length > 0) {
+    if (questions.length > 0 && !showResult) {
       timer = setInterval(() => {
         setElapsedTime((prev) => prev + 1);
       }, 1000);
-    } else {
-      setElapsedTime(0);
     }
     return () => clearInterval(timer);
-  }, [questions]);
+  }, [questions, showResult]);
+
+  useEffect(() => {
+    if (
+      timeLimit &&
+      elapsedTime >= timeLimit &&
+      questions.length > 0 &&
+      !showResult
+    ) {
+      setShowResult(true);
+    }
+  }, [elapsedTime, timeLimit, questions.length, showResult]);
 
   const generateQuestions = async () => {
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/questions', {
-        method: 'POST',
+      const response = await fetch("/api/questions", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           text: studyText,
@@ -64,19 +89,23 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate questions');
+        throw new Error("Failed to generate questions");
       }
 
       const data = await response.json();
-      const formattedQuestions = data.questions.map((q: any, index: number) => ({
-        ...q,
-        id: index,
-      }));
+      const formattedQuestions = data.questions.map(
+        (q: any, index: number) => ({
+          ...q,
+          id: index,
+        })
+      );
 
       setQuestions(formattedQuestions);
       setCurrentQuestion(0);
       setShowAnswer(false);
       setAnswers({});
+      setTimeLimit(timeLimitInput > 0 ? timeLimitInput * 60 : null);
+      setShowResult(false);
     } catch (error) {
       toast({
         title: "Error",
@@ -99,22 +128,26 @@ export default function Home() {
 
   const getScore = () => {
     const correct = Object.entries(answers).filter(
-      ([questionId, answer]) => questions[parseInt(questionId)].correctAnswer === answer
+      ([questionId, answer]) =>
+        questions[parseInt(questionId)].correctAnswer === answer
     ).length;
-    const total = Object.keys(answers).length;
-    if (total === questions.length) {
-      return `${((correct / total) * 10).toFixed()} / 10`;
-    }
-    return `${correct}/${total}`;
+    const total = questions.length;
+    return total === 0 ? "0" : ((correct / total) * 100).toFixed();
+  };
+
+  const handleFinishQuiz = () => {
+    setShowResult(true);
   };
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
   };
 
-  const handleQuestionCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleQuestionCountChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const value = e.target.value;
     setQuestionCount(Math.min(30, Math.max(1, parseInt(value) || 1)));
   };
@@ -127,19 +160,62 @@ export default function Home() {
     setQuestionCount((prev) => Math.max(1, prev - 1));
   };
 
+  const [timeLimitInput, setTimeLimitInput] = useState(0);
+
   if (!isClient) {
     return null;
+  }
+
+  if (showResult && questions.length > 0) {
+    const scorePercentage = parseFloat(getScore());
+    const passed = scorePercentage >= 50;
+
+    // lazy import confetti
+    if (passed) {
+      // @ts-ignore - optional dependency only on client
+      import("canvas-confetti").then((module) => {
+        const confetti = module.default;
+        confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+      });
+    }
+
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="p-8 text-center space-y-4 max-w-md w-full">
+          <h2 className="text-2xl font-bold">
+            {passed ? "🎉 Great job!" : "Results"}
+          </h2>
+          <p className="text-lg">Score: {scorePercentage}%</p>
+          <Button
+            className="w-full"
+            onClick={() => {
+              setQuestions([]);
+              setAnswers({});
+              setElapsedTime(0);
+              setTimeLimit(null);
+              setShowResult(false);
+            }}
+          >
+            Back to start
+          </Button>
+        </Card>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
       {questions.length === 0 ? (
         <div className="max-w-2xl mx-auto space-y-6">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-            <Image src="/study.webp" alt="Custom Logo" className="w-12 h-12 rounded-full" width={48} height={48} />
-            <h1 className="text-xl md:text-2xl font-bold">Study Buddy</h1>
+              <Image src="/study.webp" alt="Custom Logo" className="w-12 h-12 rounded-full" width={48} height={48} />
+              <h1 className="text-xl md:text-2xl font-bold">
+                Study Buddy
+              </h1>
             </div>
-          
+            <ThemeToggle />
+          </div>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="study-text">Study Material or Subject</Label>
@@ -168,8 +244,13 @@ export default function Home() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="question-count">Number of Questions (1-30)</Label>
-                <div className="py-2 px-3 bg-white border border-gray-200 rounded-lg dark:bg-neutral-900 dark:border-neutral-700" data-hs-input-number="">
+                <Label htmlFor="question-count">
+                  Number of Questions (1-30)
+                </Label>
+                <div
+                  className="py-2 px-3 bg-white border border-gray-200 rounded-lg dark:bg-neutral-900 dark:border-neutral-700"
+                  data-hs-input-number=""
+                >
                   <div className="w-full flex justify-between items-center gap-x-5">
                     <div className="grow">
                       <span className="block text-xs text-gray-500 dark:text-neutral-400">
@@ -194,7 +275,18 @@ export default function Home() {
                         onClick={decrementQuestionCount}
                         data-hs-input-number-decrement=""
                       >
-                        <svg className="shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg
+                          className="shrink-0 size-3.5"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
                           <path d="M5 12h14"></path>
                         </svg>
                       </button>
@@ -206,7 +298,18 @@ export default function Home() {
                         onClick={incrementQuestionCount}
                         data-hs-input-number-increment=""
                       >
-                        <svg className="shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg
+                          className="shrink-0 size-3.5"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
                           <path d="M5 12h14"></path>
                           <path d="M12 5v14"></path>
                         </svg>
@@ -214,6 +317,21 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="time-limit">
+                  Time limit (minutes, optional)
+                </Label>
+                <Input
+                  id="time-limit"
+                  type="number"
+                  placeholder="e.g. 5"
+                  value={timeLimitInput}
+                  onChange={(e) =>
+                    setTimeLimitInput(parseInt(e.target.value) || 0)
+                  }
+                  min={0}
+                />
               </div>
             </div>
 
@@ -228,7 +346,7 @@ export default function Home() {
                   Generating Questions...
                 </>
               ) : (
-                'Generate Questions'
+                "Generate Questions"
               )}
             </Button>
           </div>
@@ -240,8 +358,11 @@ export default function Home() {
               Question {currentQuestion + 1} of {questions.length}
             </h2>
             <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium">Time: {formatTime(elapsedTime)}</span>
-              <span className="text-sm font-medium">Score: {getScore()}</span>
+              <span className="text-sm font-medium">
+                Time: {formatTime(elapsedTime)}
+              </span>
+              <span className="text-sm font-medium">Score: {getScore()}%</span>
+              <ThemeToggle />
               <Button
                 variant="outline"
                 size="icon"
@@ -267,14 +388,20 @@ export default function Home() {
             >
               {!showAnswer ? (
                 <div className="space-y-4">
-                  <p className="text-base md:text-lg font-medium">{questions[currentQuestion].text}</p>
+                  <p className="text-base md:text-lg font-medium">
+                    {questions[currentQuestion].text}
+                  </p>
                   <div className="space-y-2">
                     {questions[currentQuestion].options.map((option, index) => (
                       <Button
                         key={index}
-                        variant={answers[currentQuestion] === index ? 
-                          (index === questions[currentQuestion].correctAnswer ? "correct" : "destructive") 
-                          : "outline"}
+                        variant={
+                          answers[currentQuestion] === index
+                            ? index === questions[currentQuestion].correctAnswer
+                              ? "correct"
+                              : "destructive"
+                            : "outline"
+                        }
                         className="w-full justify-start text-left"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -290,7 +417,18 @@ export default function Home() {
               ) : (
                 <div className="flex items-center justify-center h-full">
                   <p className="text-base md:text-lg font-medium">
-                    Correct Answer: {String.fromCharCode(65 + questions[currentQuestion].correctAnswer)}
+                    {answers[currentQuestion] ===
+                    questions[currentQuestion].correctAnswer ? (
+                      "Correct!"
+                    ) : (
+                      <>
+                        Correct:{" "}
+                        {String.fromCharCode(
+                          65 + questions[currentQuestion].correctAnswer
+                        )}{" "}
+                        – {questions[currentQuestion].explanation}
+                      </>
+                    )}
                   </p>
                 </div>
               )}
@@ -307,15 +445,18 @@ export default function Home() {
             >
               <ChevronLeft className="mr-2 h-4 w-4" /> Previous
             </Button>
-            <Button
-              onClick={() => {
-                setCurrentQuestion(currentQuestion + 1);
-                setShowAnswer(false);
-              }}
-              disabled={currentQuestion === questions.length - 1}
-            >
-              Next <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
+            {currentQuestion === questions.length - 1 ? (
+              <Button onClick={handleFinishQuiz}>Finish</Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  setCurrentQuestion(currentQuestion + 1);
+                  setShowAnswer(false);
+                }}
+              >
+                Next <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       )}

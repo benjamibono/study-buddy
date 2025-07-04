@@ -3,15 +3,12 @@ import { chatCompletionWithRetry } from "@/lib/openai";
 
 // NOTE: the OpenAI client and retry logic now live in `~/lib/openai.ts`.
 
-const systemPrompt = `You are an expert at creating educational multiple-choice questions. 
-Given some study material and a difficulty level, generate questions that test understanding.
-Each question should have 4 options with exactly one correct answer.
-Format your response as a JSON array of objects with the following structure:
-{
-  "text": "question text",
-  "options": ["option A", "option B", "option C", "option D"],
-  "correctAnswer": 0 // index of correct option (0-3)
-}`;
+const systemPrompt = `You are an expert at creating educational multiple-choice questions. Given some study material and a difficulty level:
+1. Generate the requested number of questions that truly test understanding.
+2. Each question must have exactly 4 options with one correct answer.
+3. Provide a VERY SHORT explanation (max 20 words) that clarifies **why** the correct answer is correct. This will be shown only if the learner gets the question wrong, so keep it concise and helpful.
+
+Return your output as JSON using the schema provided.`;
 
 export async function POST(request: Request) {
   try {
@@ -45,8 +42,9 @@ export async function POST(request: Request) {
                       items: { type: "string" },
                     },
                     correctAnswer: { type: "integer" },
+                    explanation: { type: "string" },
                   },
-                  required: ["text", "options", "correctAnswer"],
+                  required: ["text", "options", "correctAnswer", "explanation"],
                   additionalProperties: false,
                 },
               },

@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Toaster } from "@/components/ui/toaster";
 import React from 'react';
+import ThemeProvider from '@/components/theme-provider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -39,13 +40,15 @@ import { ReactNode } from 'react';
 
 const RootLayout = ({ children }: { children: ReactNode }) => {
   return (
-    <html lang="en" className="yuqqizjsc idc0_343">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" />
       </head>
-      <body className={inter.className}>
-        {children}
-        <Toaster />
+      <body className={`${inter.className} bg-background text-foreground`}>
+        <ThemeProvider>
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
