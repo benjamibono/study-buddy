@@ -1,15 +1,7 @@
-import OpenAI from "openai";
 import { NextResponse } from "next/server";
-import dotenv from "dotenv";
+import { chatCompletionWithRetry } from "@/lib/openai";
 
-// Load environment variables from a local .env file
-if (process.env.NODE_ENV !== 'production') {
-  dotenv.config();
-}
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// NOTE: the OpenAI client and retry logic now live in `~/lib/openai.ts`.
 
 const systemPrompt = `You are an expert at creating educational multiple-choice questions. 
 Given some study material and a difficulty level, generate questions that test understanding.
@@ -21,25 +13,12 @@ Format your response as a JSON array of objects with the following structure:
   "correctAnswer": 0 // index of correct option (0-3)
 }`;
 
-async function createCompletionWithRetry(params: any, retries = 3) {
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      return await openai.chat.completions.create(params);
-    } catch (error) {
-      if (attempt === retries) {
-        throw error;
-      }
-      console.warn(`Attempt ${attempt} failed. Retrying...`);
-    }
-  }
-}
-
 export async function POST(request: Request) {
   try {
     const { text, difficulty, count } = await request.json();
 
-    const completion = await createCompletionWithRetry({
-      model: "gpt-4o-mini",
+    const completion = await chatCompletionWithRetry({
+      model: "gpt-4.1-mini-2025-04-14",
       messages: [
         { role: "system", content: systemPrompt },
         {
@@ -80,9 +59,6 @@ export async function POST(request: Request) {
       store: true,
     });
 
-    if (!completion) {
-      throw new Error("No completion returned from OpenAI");
-    }
     const responseContent = completion.choices[0]?.message?.content || "{}";
     console.log("OpenAI response:", responseContent);
 
