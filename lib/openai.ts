@@ -2,12 +2,21 @@ import OpenAI from "openai";
 
 /**
  * Shared OpenAI client instance configured via OPENAI_API_KEY.
+ * Lazy-initialised on first use so that importing this module during
+ * `next build` (when env vars are not available) does not crash.
  * The client is created once and reused across the application
  * to benefit from internal HTTP keep-alive and connection pooling.
  */
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let _openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!_openai) {
+    _openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return _openai;
+}
 
 /**
  * Lightweight exponential-backoff retry helper for chat completions.
@@ -21,7 +30,7 @@ export async function chatCompletionWithRetry<
 ): Promise<T> {
   for (let attempt = 0; attempt < retries; attempt += 1) {
     try {
-      return (await openai.chat.completions.create(params)) as T;
+      return (await getOpenAIClient().chat.completions.create(params)) as T;
     } catch (error: any) {
       const isLastAttempt = attempt === retries - 1;
       if (isLastAttempt) throw error;
