@@ -120,3 +120,4 @@ Benjami Bono - @benjamibono
 - Radix UI for the accessible components
 - Tailwind CSS for the utility-first CSS framework
 - OpenAI for the AI capabilities
+
