@@ -5,6 +5,10 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+    # Ignore major version updates - they require manual migration
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       all-dependencies:
         patterns:
